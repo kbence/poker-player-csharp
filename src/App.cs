@@ -7,37 +7,37 @@ namespace Nancy.Simple
 	{
 		const string StagingPort = "8080";
 
-		static readonly string HOST = Environment.GetEnvironmentVariable ("HOST");
 		static readonly string PORT = Environment.GetEnvironmentVariable ("PORT");
 
 		static NancyHost Host;
 
 		enum Env { Staging, Deployment }
 
-		static Env CurrentEnv {
-			get {
-				return HOST == null ? Env.Staging : Env.Deployment;
+		static string BindHost
+		{
+			get
+			{
+				return PORT == null ? "127.0.0.1" : "0.0.0.0";
 			}
 		}
 
-		static Uri CurrentAddress {
+		static string BindPort {
 			get {
-				switch (CurrentEnv) {
-				case Env.Staging:
-					return new Uri ("http://0.0.0.0:8080");
-				case Env.Deployment:
-					return new Uri (HOST.Substring(0, HOST.Length - 1) + ":" + PORT);
-				default:
-					throw new Exception ("Unexpected environment");
-				}
+				return PORT == null ? "8080" : PORT;
+			}
+		}
+
+		static Uri BindAddress {
+			get {
+				return new Uri (String.Format("http://{0}:{1}", BindHost, BindPort));
 			}
 		}
 
 		static void Main (string[] args)
 		{
-			Host = new NancyHost (CurrentAddress);
+			Host = new NancyHost (BindAddress);
 			Host.Start ();
-			Console.WriteLine ("Nancy is started and listening on {0}...", CurrentAddress);
+			Console.WriteLine ("Nancy is started and listening on {0}...", BindAddress);
 			while (Console.ReadLine () != "quit");
 			Host.Stop ();
 		}
